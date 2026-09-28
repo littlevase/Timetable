@@ -1,5 +1,11 @@
-const CACHE = 'timetable-v15';
-const ASSETS = ['./', './index.html', './manifest.json'];
+const CACHE = 'timetable-v16';
+const ASSETS = [
+  '/Timetable/',
+  '/Timetable/index.html',
+  '/Timetable/manifest.json',
+  '/Timetable/icon-192.png',
+  '/Timetable/icon-512.png'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -14,7 +20,9 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -24,7 +32,6 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
 
-  // Page navigations (opening the app): network-first, cached index.html as fallback
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request)
@@ -34,14 +41,13 @@ self.addEventListener('fetch', e => {
           return res;
         })
         .catch(() =>
-          caches.match('./index.html', { ignoreSearch: true })
-            .then(r => r || caches.match('./', { ignoreSearch: true }))
+          caches.match('/Timetable/index.html', { ignoreSearch: true })
+            .then(r => r || caches.match('/Timetable/', { ignoreSearch: true }))
         )
     );
     return;
   }
 
-  // Everything else: cache-first, populate on success
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(r =>
       r || fetch(e.request).then(res => {
